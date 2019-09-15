@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="简介：jvm的性能调优，减少垃圾回收次数，堆的初始值和最大值一样。堆的初始值Xms太小，容易经常gc()。本文主要介绍了垃圾回收机制的算法、堆内存的划分、垃圾回收策略、以及一些参数的配置。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jvm性能调优">
+<meta property="og:url" content="http://yoursite.com/2019/09/15/jvm性能调优/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="简介：jvm的性能调优，减少垃圾回收次数，堆的初始值和最大值一样。堆的初始值Xms太小，容易经常gc()。本文主要介绍了垃圾回收机制的算法、堆内存的划分、垃圾回收策略、以及一些参数的配置。">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2019-09-15T13:34:32.297Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="jvm性能调优">
+<meta name="twitter:description" content="简介：jvm的性能调优，减少垃圾回收次数，堆的初始值和最大值一样。堆的初始值Xms太小，容易经常gc()。本文主要介绍了垃圾回收机制的算法、堆内存的划分、垃圾回收策略、以及一些参数的配置。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/09/15/jvm性能调优/">
+
+
+
+
+
+  <title>jvm性能调优 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-主页">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            主页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-文章">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            文章
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/15/jvm性能调优/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">jvm性能调优</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-09-15T21:25:49+08:00">
+                2019-09-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>简介：jvm的性能调优，减少垃圾回收次数，堆的初始值和最大值一样。堆的初始值Xms太小，容易经常gc()。本文主要介绍了垃圾回收机制的算法、<br>堆内存的划分、垃圾回收策略、以及一些参数的配置。</p>
+<a id="more"></a>
+<h2 id="1-java内存结构"><a href="#1-java内存结构" class="headerlink" title="1.java内存结构"></a>1.java内存结构</h2><pre><code>堆：引用变量
+栈：基本数据类型 基本变量 线程私有
+本地方法栈:和c语音打交道 会调用本地方法接口 然后调用本地方法库
+方法区：类信息 常量  静态方法等 垃圾回收机制也会回收这里
+程序计数器：程序顺序执行
+执行引擎:执行字节码</code></pre><h2 id="2-垃圾回收机制算法"><a href="#2-垃圾回收机制算法" class="headerlink" title="2.垃圾回收机制算法"></a>2.垃圾回收机制算法</h2><h3 id="什么是垃圾回收机制？"><a href="#什么是垃圾回收机制？" class="headerlink" title="什么是垃圾回收机制？"></a>什么是垃圾回收机制？</h3><pre><code>jvm 不定时回收不可达对象。</code></pre><h3 id="什么是不可达对象？"><a href="#什么是不可达对象？" class="headerlink" title="什么是不可达对象？"></a>什么是不可达对象？</h3><pre><code>对象没有被引用
+System.gc()提示jvm回收，不是立即回收</code></pre><h3 id="堆内存的划分："><a href="#堆内存的划分：" class="headerlink" title="堆内存的划分："></a>堆内存的划分：</h3><pre><code>新老比例:1:2
+新生代：
+    刚出生不久的对象，经过多次垃圾回收（15次默认）没有被回收的话进入老年代eden  s0 s1三个区
+老年代：
+    存放的是比较活跃的对象</code></pre><h3 id="判断对象存活："><a href="#判断对象存活：" class="headerlink" title="判断对象存活："></a>判断对象存活：</h3><pre><code>引用计数法：
+    已经被淘汰了，循环依赖问题无法解决。
+    每个对象有个年龄，GC不定期回收垃圾，若被使用年龄+1，若没被使用-1，如果年龄为0，会被认为不可达的对象。
+
+可达性分析算法：
+    1.有个GCROOTS
+    2.对象要与GCROOTS有引用链 连接
+    3.GCROOTS的对象来源：方法区静态属性和常量属性、JNI引用对象、栈帧中的局部变量等。</code></pre><h3 id="垃圾回收策略："><a href="#垃圾回收策略：" class="headerlink" title="垃圾回收策略："></a>垃圾回收策略：</h3><pre><code>1.标记清除算法：给对象做个标记，给存活对象做个标记，对于没有存活标记的对象进行回收，此算法会产生碎片。
+垃圾回收机制遍历堆标记为不可达的对象进行回收。
+该算法效率不高，多用于老年代。
+2.标记整理算法：在标记清除算法的基础上，进行排序，可达不可达的分开存放，删除的时候只删除不可达的，解决碎片话问题。
+
+3.分代算法：根据对象存活周期不同，将内存分为几个区域，新生代和老年代，根据不同区域的特点采用不同的垃圾回收算法。
+    full gc 和
+    minor gc 同时使用 解决碎片化问题，缺点是浪费空间。            </code></pre><h2 id="3-参数配置和新能调优"><a href="#3-参数配置和新能调优" class="headerlink" title="3.参数配置和新能调优"></a>3.参数配置和新能调优</h2><h3 id="JVM-参数配置"><a href="#JVM-参数配置" class="headerlink" title="JVM 参数配置"></a>JVM 参数配置</h3><pre><code>    -XX +PrintGC 每次回收的时候都会打印日志
+    -XX +userSerialGC 做串行回收 一般比较少，都用并行回收
+    -XX +PrintDetailGC 更详细的GC日志
+    -Xms 堆初始值大小
+    -Xmx 堆最大可用值 
+    -Xmn 新生代堆最大可用值 满了发生minor gc
+    -XX:NewRatio 新生代和老年代占比
+    -XX:SurvivorRatio 用来设置新生代空间eden 和from/to比例
+
+    性能调优基本原则：减少垃圾回收次数，堆的初始值和最大值一样。
+                      新生代要比老年代小，默认比例是1：2
+
+
+配置调优：
+    -Xms5m -Xmx20m 配置堆初始值 和堆最大值 超出报内存溢出
+
+    -Xmx20m      -Xms20m  -Xmn1m       -XX:SurvivorRatio=2    -XX:+PrintGC -XX:+PrintGCDetails -XX:+UseSerialGC -XX:NewRatio=2
+    设置堆最大值 堆初始值 新生代最大值 设置eden 和from/同比例 垃圾回收时打印 打印详情          串行回收         新老比例
+    垃圾回收次数和最大堆内存没关系，只与初始堆大小有关系。</code></pre><h3 id="内存溢出：申请的内存空间超出最大空间，申请内存空间时超出最大堆内存空间"><a href="#内存溢出：申请的内存空间超出最大空间，申请内存空间时超出最大堆内存空间" class="headerlink" title="内存溢出：申请的内存空间超出最大空间，申请内存空间时超出最大堆内存空间"></a>内存溢出：申请的内存空间超出最大空间，申请内存空间时超出最大堆内存空间</h3><pre><code>堆溢出：
+    内存不够了
+栈溢出：
+    线程有一个最大深度，入栈，执行完出栈，一直没运行完，循环调用，一直不出栈。
+    -Xss5m 配置相关信息。</code></pre><h3 id="内存泄漏：内存空间没有及时释放。导致长时间占用内存，内存溢出。太多static关键字时候，不关流等问题容易导致。"><a href="#内存泄漏：内存空间没有及时释放。导致长时间占用内存，内存溢出。太多static关键字时候，不关流等问题容易导致。" class="headerlink" title="内存泄漏：内存空间没有及时释放。导致长时间占用内存，内存溢出。太多static关键字时候，不关流等问题容易导致。"></a>内存泄漏：内存空间没有及时释放。导致长时间占用内存，内存溢出。太多static关键字时候，不关流等问题容易导致。</h3><h3 id="垃圾回收器："><a href="#垃圾回收器：" class="headerlink" title="垃圾回收器："></a>垃圾回收器：</h3><pre><code>    并行回收与串行回收的区别：串行单线程、并行多线程。
+    并行回收适合吞吐量使用。并发量高的适合。
+    serial回收器
+        串行垃圾回收去 。合适小型应用。
+        -XX:+UseSerialGC
+
+    ParNew并行回收器
+        serial回收器的升级版，新生代并行，老年代串行。
+        -XX:+UseParNewGC
+        -XX:+ParallelGCThreads 限制线程数量
+    Parallel并行收集器
+        更关注吞吐量
+        -XX:+UseParallelGC
+        适合大型程序
+    CMS回收器
+    -XX:+UseConcMarkSweepGC
+    意为 Concurrent Mark Sweep并发标记清除。并发阶段会降低系统的吞吐量
+
+    g1回收器
+    -XX:+UseG1GC -Xmx32g -XX:MaxGCPauseMillis=200
+
+Tomcat调优方案
+    吞吐量throuput：每秒钟完成请求到响应的时间。初始内存会影响吞吐量。
+    如果堆的初始值和最大值一致的情况下，并且堆的初始值越大，吞吐量越高。</code></pre><h2 id="4-JVM动态字节码技术"><a href="#4-JVM动态字节码技术" class="headerlink" title="4.JVM动态字节码技术"></a>4.JVM动态字节码技术</h2><pre><code>jconsole visualvm 做jvm堆栈检测用的。
+
+aop技术、lombok字节码技术
+
+字节码技术是对类的基本信息做修改，新增或删除方法、属性，也可以新增类。
+
+字节码框架 ASM javaassist
+    动态代理底层就是ASM实现的，对字节码进行操作。</code></pre><h3 id="实现字节码增强的原理：-cjlib就是这个原理"><a href="#实现字节码增强的原理：-cjlib就是这个原理" class="headerlink" title="实现字节码增强的原理： cjlib就是这个原理"></a>实现字节码增强的原理： cjlib就是这个原理</h3><pre><code>1.修改字节码
+    在内存中获取原来的字节码，然后通过一些工具（ASM,javaassist）修改他的byte[]数组，得到一个新的数组。
+2.使修改后的字节码生效
+    1）自定义的classloader来加载修改后的字节码
+    2）替换掉原来的字节码：在jvm加载用户的class时，拦截，返回修改后的字节码；或在运行时使用
+    Instrumentation.redefineClasses方法来替换掉原来的字节码</code></pre><h2 id="5-类加载器"><a href="#5-类加载器" class="headerlink" title="5.类加载器"></a>5.类加载器</h2><pre><code>热部署就是classloader对修改的字节码文件重新加载 
+    使用自定义的classloader 底层运用反射原理执行class文件的方法。
+
+字节码对字节码文件修改新增
+类加载过程
+    类加载
+    连接（验证、准备、解析）
+        验证：确保类信息符合java规范，没有安全性问题。
+        准备：为类变量（static）分配内存，并设置初始值，这些内存都在方法区中进行。
+        解析：虚拟机常量池的符号引用替换为字节引用过程
+    初始化
+
+将class文件加载到内存中，并将这些静态数据转换为方法区中运行时数据结构，在堆内存中生成一个java.lang.Class对象,
+作为方法区中类数据的访问入口，这个过程需要类加载器参与。
+
+类加载器
+    brootStrop
+    ext
+    app
+    自定义
+
+常见问题
+    1.错误: 找不到或无法加载主类 com.learn.spring.reflex.Test001 因为删除了.class文件，用maven clean 下就可以了
+
+自定义myclassLoader回顾
+    1.读文件名称 xx.class
+    2.获取字节流 this.getclass().getResourceAsStream(fileName);
+    3.转成二进制数组
+    4.读取
+    5.把二进制class文件返回到jvm中</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/15/java并发编程/" rel="prev" title="java并发编程">
+                java并发编程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-java内存结构"><span class="nav-number">1.</span> <span class="nav-text">1.java内存结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-垃圾回收机制算法"><span class="nav-number">2.</span> <span class="nav-text">2.垃圾回收机制算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是垃圾回收机制？"><span class="nav-number">2.1.</span> <span class="nav-text">什么是垃圾回收机制？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是不可达对象？"><span class="nav-number">2.2.</span> <span class="nav-text">什么是不可达对象？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#堆内存的划分："><span class="nav-number">2.3.</span> <span class="nav-text">堆内存的划分：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#判断对象存活："><span class="nav-number">2.4.</span> <span class="nav-text">判断对象存活：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾回收策略："><span class="nav-number">2.5.</span> <span class="nav-text">垃圾回收策略：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-参数配置和新能调优"><span class="nav-number">3.</span> <span class="nav-text">3.参数配置和新能调优</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM-参数配置"><span class="nav-number">3.1.</span> <span class="nav-text">JVM 参数配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存溢出：申请的内存空间超出最大空间，申请内存空间时超出最大堆内存空间"><span class="nav-number">3.2.</span> <span class="nav-text">内存溢出：申请的内存空间超出最大空间，申请内存空间时超出最大堆内存空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存泄漏：内存空间没有及时释放。导致长时间占用内存，内存溢出。太多static关键字时候，不关流等问题容易导致。"><span class="nav-number">3.3.</span> <span class="nav-text">内存泄漏：内存空间没有及时释放。导致长时间占用内存，内存溢出。太多static关键字时候，不关流等问题容易导致。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾回收器："><span class="nav-number">3.4.</span> <span class="nav-text">垃圾回收器：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-JVM动态字节码技术"><span class="nav-number">4.</span> <span class="nav-text">4.JVM动态字节码技术</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实现字节码增强的原理：-cjlib就是这个原理"><span class="nav-number">4.1.</span> <span class="nav-text">实现字节码增强的原理： cjlib就是这个原理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-类加载器"><span class="nav-number">5.</span> <span class="nav-text">5.类加载器</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

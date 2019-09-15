@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="简介：本文简述了java并发相关知识，对线程池和锁的进行了分析。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java并发编程">
+<meta property="og:url" content="http://yoursite.com/2019/09/15/java并发编程/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="简介：本文简述了java并发相关知识，对线程池和锁的进行了分析。">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2019-09-15T13:59:02.041Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="java并发编程">
+<meta name="twitter:description" content="简介：本文简述了java并发相关知识，对线程池和锁的进行了分析。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/09/15/java并发编程/">
+
+
+
+
+
+  <title>java并发编程 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-主页">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            主页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-文章">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            文章
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/15/java并发编程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">java并发编程</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-09-15T21:25:49+08:00">
+                2019-09-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>简介：本文简述了java并发相关知识，对线程池和锁的进行了分析。</p>
+<a id="more"></a>
+<h2 id="1-java并发编程"><a href="#1-java并发编程" class="headerlink" title="1.java并发编程"></a>1.java并发编程</h2><h3 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h3><pre><code>同步：代码从上到下依次执行。
+异步：新的一条路径不会影响其他的线程。
+线程和进程：
+    进程是一个独立的运行程序，不同进程不共享内存空间。
+    线程是进程内一条执行路线，进程中有多个线程，共享内存空间。
+    内存的不同进程由cpu不停的切换。
+多线程：同一时刻，有多条不同的执行路径同时执行。最终目的是提高程序效率。
+单核：cpu调度，无法同时进行，只是看起来像同时。
+多线程应用：下载、数据库连接池。
+线程分类：用户线程、守护线程  
+主线程、子线程 一个线程中，必然存在主线程
+线程的状态
+    新建 new
+    就绪 start 等待cpu分配执行权
+    运行 分配完执行权，运行
+    阻塞 wait sleep方法，从阻塞唤醒后 会进入就绪状态 ，锁的阻塞状态
+    死亡 执行完毕死亡 run方法执行完毕
+守护线程
+    后台运行，所有用户线程结束后 守护线程必结束。
+join a,b两个线程 a线程执行完毕后，在执行b线程，那就在b线程中调用a的join方法。</code></pre><p>  线程安全问题<br>    当多个线程共享同一个全局变量，做写的操作时候，可能会受到其他线程的干扰。这个产生的根本原因是内存的可见性问题。<br>    java提供了内制锁机制实现原子性操作。synchronized关键字是内制锁，也是互斥锁。<br>  多线程死锁的问题<br>    同步中嵌套同步很容易产生死锁线程<br>  threadlocal<br>    不共享变量.<br>    低层是map集合，key是当前线程 value是值。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public static ThreadLocal&lt;Integer&gt; threadLocal=new ThreadLocal&lt;Integer&gt;()&#123;</span><br><span class="line">       protected Integer initialValue() &#123;</span><br><span class="line">           return 0;</span><br><span class="line"></span><br><span class="line">       &#125;;</span><br><span class="line">   &#125;;</span><br></pre></td></tr></table></figure></p>
+<h2 id="2-java内存模型"><a href="#2-java内存模型" class="headerlink" title="2.java内存模型"></a>2.java内存模型</h2><h3 id="多线程三个特性"><a href="#多线程三个特性" class="headerlink" title="多线程三个特性"></a>多线程三个特性</h3><pre><code>原子性 可见性 有序性
+
+原子性 保证线程安全问题
+可见性 对变量修改的时候其他线程可见
+有序性 对代码优化 提高效率</code></pre><h3 id="内存结构是-jvm的"><a href="#内存结构是-jvm的" class="headerlink" title="内存结构是 jvm的"></a>内存结构是 jvm的</h3><pre><code>    jmm决定一个线程对共享变量写入时能对另一个线程是否可见.
+    主内存:共享存储变量.
+    本地内存:共享变量副本.
+    每个线程操作的是是本地内存的副本,然后刷新到主内存,所以,如果同时操作变量时,不可见.
+    会造成线程安全的问题.
+    线程安全:就是保证多线程时,一个线程改变共享变量,刷新主内存后,主内存更改后的值在拷贝一份到本地内存.
+
+voliate就是保证线程可见性,不保证原子性.全局共享变量加voliate关键字.
+    保证可见性.
+    禁止重排序优化.    
+    重排序:cpu对代码进行优化,不会对有依赖关系的进行重排序.代码执行顺序可能会改变,单不会对结果有影响.只有在多线程情况下有影响.
+    什么是数据依赖关系.
+    a=1;
+    b=2
+    c=a*b
+
+内存模型是 jmm的 和线程相关</code></pre><h2 id="3-多线程之间的通信"><a href="#3-多线程之间的通信" class="headerlink" title="3.多线程之间的通信"></a>3.多线程之间的通信</h2><pre><code>wait/notify 
+wait 释放锁,进入等待池,让锁等待
+notify 唤醒线程,进入锁池竞争锁
+为什么wait和notify为什么是object的,必须放在synchronied中.
+因为synchronized的锁是任意对象,所以需要放在object中也就是说，等待和唤醒必须是同一个锁。
+而锁可以是任意对象，所以可以被任意对象调用的方法是定义在object类中。
+
+因为要对持有监视器(锁)的线程操作。所以要使用在同步中，因为只有同步 才具有锁。</code></pre><h2 id="4-并发编程专题"><a href="#4-并发编程专题" class="headerlink" title="4.并发编程专题"></a>4.并发编程专题</h2><pre><code>并发队列：concurrentlinkedQueue 非阻塞式队列 blockingqueue 阻塞队列
+    阻塞队列，当队列满后，阻塞
+    非阻塞队列，队列满后，不阻塞，继续或者报错
+    concurrentlinkedQueue 无界队列，实际也是有界的，不等待.
+    blockingqueue 阻塞,等待,超出时候无法继续添加.
+线程池的源码分析
+    实现方式:1.单线程的线程池 2.固定线程的线程池 3.有缓冲区的线程池 4.定时任务线程池
+    线程池创建的四种方式
+    Executors.newCachedThreadPool()创建缓存的线程池,可以灵活回收.
+    Executors.newFixedThreadPool() 创建固定大小的线程池,控制并发.底层 blockingqueue阻塞队列
+    目的:
+    降低资源消耗  降低创建和销毁的资源消耗 
+    提高效率 不需要创建新的线程
+    方便管理 
+    线程池溢出:频繁创建线程,占cpu
+    (int corePoolSize,   核心线程数 实际使用的线程数
+     int maximumPoolSize,最大线程数 线程池最多创建多少个线程
+     long keepAliveTime,
+     TimeUnit unit,
+     BlockingQueue&lt;Runnable&gt; workQueue)
+    当前线程数小于核心线程数,小于核心线程数,直接创建线程执行,
+    大于核心线程数,放入缓存队列,判断缓存队列是否满了
+    不满,则等待线程执行完毕后,复用线程,
+    满了则判断是否大于最大线程数,不大于,创建线程执行,大于则采取拒绝策略.
+    最大线程数+队列长度 是线程可执行的最大值,否则进行拒绝策略.
+    用阻塞队列原因：线程执行需要时间，若核心线程没执行完，线程任务等待，释放资源后，出列。非阻塞队列不阻塞直接出列。
+
+合理配置线程池
+
+    CPU密集：任务执行不会产生大量io，任务是cpu密集型的，运行比较快，配置线程需要少些。配置合理线程数就是cpu的核数。
+
+    IO密集：需要io阻塞严重，需要多配置些线程数 2*cpu核数。
+
+callBack和future
+    future核心是去除了主函数的等待时间，使原本需要等待的时间可以处理其他任务。
+    future 相当于ajax异步加载</code></pre><h2 id="5-并发编程锁专题"><a href="#5-并发编程锁专题" class="headerlink" title="5.并发编程锁专题"></a>5.并发编程锁专题</h2><pre><code>重入锁：也叫递归锁，外层函数获得锁之后，内层函数仍有获得该锁的代码，不受影响。方法递归传递。避免死锁。
+
+轻量锁:lock锁 自己上锁解锁 灵活性高
+重量级:synchronized 是重量锁。
+
+读写锁：刷缓存、数据库读写分离 多线程情况下， 读读可以共存，读写不能共存，写写也不能共存。</code></pre><h3 id="乐观锁和悲观锁"><a href="#乐观锁和悲观锁" class="headerlink" title="乐观锁和悲观锁"></a>乐观锁和悲观锁</h3><pre><code>乐观锁：本质没有锁，效率比较高，无阻塞，无等待，失败情况需要重试。CAS无锁机制。
+    update set x=x+1,version=version+1 where id=? and version=version
+悲观锁：是重量级锁，会阻塞。
+
+原子类：线程安全的，非阻塞，底层使用的是CAS无锁机制。
+CAS无锁机制：
+    比较交换.java内存模型
+    CAS三个变量：
+    V 需要更新的变量 主内存变量的值
+    E 期望值         本地内存变量值
+    N 新值           
+    当V=E的时候，说明没有被该过，可以赋值V=N
+    当V!=E的时候，说明被该过了，重新刷新主内存比较，直到相等时候退出更新值。
+    自旋锁 ：刷新内存比较这个就是自旋锁，do while 要有退出循环条件，否则死循环。
+    公平锁与非公平锁：aqs：</code></pre><h2 id="6-discrupt框架"><a href="#6-discrupt框架" class="headerlink" title="6.discrupt框架"></a>6.discrupt框架</h2><pre><code>cas 无锁，用的是非阻塞队列 基于事件驱动</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/15/jvm性能调优/" rel="next" title="jvm性能调优">
+                <i class="fa fa-chevron-left"></i> jvm性能调优
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/15/mysql/" rel="prev" title="mysql">
+                mysql <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-java并发编程"><span class="nav-number">1.</span> <span class="nav-text">1.java并发编程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基础概念"><span class="nav-number">1.1.</span> <span class="nav-text">基础概念</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-java内存模型"><span class="nav-number">2.</span> <span class="nav-text">2.java内存模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#多线程三个特性"><span class="nav-number">2.1.</span> <span class="nav-text">多线程三个特性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存结构是-jvm的"><span class="nav-number">2.2.</span> <span class="nav-text">内存结构是 jvm的</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-多线程之间的通信"><span class="nav-number">3.</span> <span class="nav-text">3.多线程之间的通信</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-并发编程专题"><span class="nav-number">4.</span> <span class="nav-text">4.并发编程专题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-并发编程锁专题"><span class="nav-number">5.</span> <span class="nav-text">5.并发编程锁专题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#乐观锁和悲观锁"><span class="nav-number">5.1.</span> <span class="nav-text">乐观锁和悲观锁</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-discrupt框架"><span class="nav-number">6.</span> <span class="nav-text">6.discrupt框架</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

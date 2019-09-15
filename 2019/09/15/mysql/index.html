@@ -79,17 +79,17 @@
 
 
 
-<meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta name="description" content="简介：主要对mysql的索引的一些学习.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="http://yoursite.com/2019/09/15/hello-world/index.html">
+<meta property="og:title" content="mysql">
+<meta property="og:url" content="http://yoursite.com/2019/09/15/mysql/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta property="og:description" content="简介：主要对mysql的索引的一些学习.">
 <meta property="og:locale" content="en">
-<meta property="og:updated_time" content="2019-09-15T10:16:22.146Z">
+<meta property="og:updated_time" content="2019-09-15T14:24:39.060Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hello World">
-<meta name="twitter:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta name="twitter:title" content="mysql">
+<meta name="twitter:description" content="简介：主要对mysql的索引的一些学习.">
 
 
 
@@ -119,13 +119,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/09/15/hello-world/">
+  <link rel="canonical" href="http://yoursite.com/2019/09/15/mysql/">
 
 
 
 
 
-  <title>Hello World | Hexo</title>
+  <title>mysql | Hexo</title>
   
 
 
@@ -180,22 +180,22 @@
     <ul id="menu" class="menu">
       
         
-        <li class="menu-item menu-item-home">
+        <li class="menu-item menu-item-主页">
           <a href="/" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
             
-            Home
+            主页
           </a>
         </li>
       
         
-        <li class="menu-item menu-item-archives">
+        <li class="menu-item menu-item-文章">
           <a href="/archives/" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
             
-            Archives
+            文章
           </a>
         </li>
       
@@ -232,7 +232,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/15/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/15/mysql/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="John Doe">
@@ -249,7 +249,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Hello World</h1>
+          <h1 class="post-title" itemprop="name headline">mysql</h1>
         
 
         <div class="post-meta">
@@ -261,7 +261,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-09-15T18:16:22+08:00">
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-09-15T22:08:27+08:00">
                 2019-09-15
               </time>
             
@@ -299,20 +299,49 @@
       
 
       
-        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+        <p>简介：主要对mysql的索引的一些学习.</p>
+<a id="more"></a>
+<h2 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h2><pre><code>常见索引模型 哈希 有序数组 二叉树
+索引的出现其实就是为了提高数据查询的效率，就像书的目录一样。
+索引模型：二叉搜索树的特点是：每个节点的左儿子小于父节点，父节点又小于右儿子
+B+ 树索引模型：
+b+树能减少查询时访问磁盘的次数.
+每一个索引在 InnoDB 里面对应一棵 B+ 树。非主键索引的叶子节点内容是主键的值。在 InnoDB 里，非主键索引也被称为二级索引
+主键索引存储的是这一行的数据。
+使用非主键索引的时候需要先查询到对应的主键，在去主键索引查询，这个过程叫做回表。
 
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+覆盖索引：
+    普通索引存放的是k和主键，如果通过普通索引查询主键的话，不需要回标，直接查询即可。这个叫覆盖索引。
+    覆盖索引减少了查询次数，这个也是优化sql的一种常见手段。
+    不只是索引的全部定义，只要满足最左前缀，就可以利用索引来加速索引效率
+最左前缀：不只是索引的全部定义，只要满足最左前缀，就可以利用索引来加速查询
 
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+索引下推: like 多种条件这种
+索引维护:
+    b+树为了维护索引有序性,在插入新值的时候需要做维护,插入新值的时候如果是最大索引就直接插入到后边
+    如果不是则会移动部分数据,最糟糕的情况会申请一个新的数据页,俗称页分裂,降低性能.
+补充：
+    如果对字段进行了函数处理，mysql就无法使用索引了
+    所以在查询的时候尽量少使用索引。</code></pre><h2 id="数据库中锁"><a href="#数据库中锁" class="headerlink" title="数据库中锁"></a>数据库中锁</h2><pre><code>锁是解决并发的问题。
+全局锁 数据更新语句（数据的增删改）、数据定义语句（包括建表、修改表结构）提交事务等会被阻塞
+表锁 MySQL 里面表级别的锁有两种：一种是表锁，一种是元数据锁
+当对一个表做增删改查操作的时候，加 MDL 读锁；当要对表做结构变化的时候加入的写锁
 
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+行锁 对一行加锁
+    在 InnoDB 事务中，行锁是在需要的时候才加上的，但并不是不需要了就立刻释放，而是要等到事务结束时才释放。这个就是两阶段锁协议。
 
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+死锁和死锁检测
 
+
+补充：
+    乐观锁：一般，认为这次的操作不会导致冲突，在操作数据时，并不进行任何其他的特殊处理（也就是不加锁），而在进行更新后，再去判断是否有冲突。
+        实现一般是加个version字段。更新的时候，查看version字段是否一致。
+    悲观锁：悲观锁就是在操作数据时，认为此操作会出现数据冲突，所以在进行每次操作时都要通过获取锁才能进行对相同数据的操作
+        共享锁：对于多个不同的事务，对同一个资源共享同一个锁。
+        排他锁：指对于多个不同的事务，对同一个资源只能有一把锁。也叫写锁
+    死锁：是指两个或两个以上的进程在执行过程中，因争夺资源而造成的一种互相等待的现象，若无外力作用，它们都将无法推进下去。</code></pre><h2 id="mysql-字符串索引"><a href="#mysql-字符串索引" class="headerlink" title="mysql 字符串索引"></a>mysql 字符串索引</h2><pre><code>可以给字符串加索引 可以使用hash值 。使用字符串索引就说索引前缀。匹配几个字母，对于身份证这种，可以查询的时候倒置提高效率。</code></pre><h3 id="innodb存储引擎的表包含两部分，表结构和表数据"><a href="#innodb存储引擎的表包含两部分，表结构和表数据" class="headerlink" title="innodb存储引擎的表包含两部分，表结构和表数据"></a>innodb存储引擎的表包含两部分，表结构和表数据</h3><pre><code>表结构占用空间小，表数据占用大，有时候删除数据，但表空间没有回收的原因
+    表数据既可以存放在共享空间也可以存放在单独文件 .ibd文件。
+    delete 只是删除了记录的位置，或者把数据页标记为了&quot;可复用&quot;，但磁盘文件的大小没有变，所以delete 没有删除数据结构。</code></pre>
       
     </div>
     
@@ -332,6 +361,26 @@
       
       
 
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/15/java并发编程/" rel="next" title="java并发编程">
+                <i class="fa fa-chevron-left"></i> java并发编程
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/15/springAop源码分析/" rel="prev" title="springAop源码分析">
+                springAop源码分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
       
 
       
@@ -403,9 +452,9 @@
             
               <div class="site-state-item site-state-posts">
               
-                <a href="/archives/">
+                <a href="/archives">
               
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -442,7 +491,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-a-new-post"><span class="nav-number">1.1.</span> <span class="nav-text">Create a new post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-server"><span class="nav-number">1.2.</span> <span class="nav-text">Run server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generate-static-files"><span class="nav-number">1.3.</span> <span class="nav-text">Generate static files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploy-to-remote-sites"><span class="nav-number">1.4.</span> <span class="nav-text">Deploy to remote sites</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#索引"><span class="nav-number">1.</span> <span class="nav-text">索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库中锁"><span class="nav-number">2.</span> <span class="nav-text">数据库中锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql-字符串索引"><span class="nav-number">3.</span> <span class="nav-text">mysql 字符串索引</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#innodb存储引擎的表包含两部分，表结构和表数据"><span class="nav-number">3.1.</span> <span class="nav-text">innodb存储引擎的表包含两部分，表结构和表数据</span></a></li></ol></li></ol></div>
             
 
           </div>
